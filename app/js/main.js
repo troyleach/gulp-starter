@@ -4,4 +4,4 @@ console.log('and more shit here');
 console.log('see if this added to the end!!');
 
 document.getElementById('sweet-header').innerHTML =
-  'MY COOL TITLE'
+  'BOILERPLATE WEBSITE USING GULP'

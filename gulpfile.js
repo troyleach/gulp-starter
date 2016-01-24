@@ -9,6 +9,7 @@ var gulp         = require('gulp'),
     sass         = require('gulp-sass'),
     plumber      = require('gulp-plumber'),
     autoprefixer = require('gulp-autoprefixer'),
+    del          = require('del'),
     rename       = require('gulp-rename');
 
 // ////////////////////////////////////////////////
@@ -38,12 +39,39 @@ gulp.task('sass', function() {
   });
 
 // ////////////////////////////////////////////////
-// SASS Task
+// HTML Task
 // // /////////////////////////////////////////////
 gulp.task('html', function() {
   gulp.src('app/**/*.html')
   .pipe(browserSync.stream());
 });
+
+// ////////////////////////////////////////////////
+// BUILD Task
+// // /////////////////////////////////////////////
+// Task delete the build dir first
+gulp.task('build:deleteFolder', function(cb) {
+  del([
+    'build/**'
+  ], cb());
+});
+
+// Task to create build directory for all files
+gulp.task('build:copy', ['build:deleteFolder'], function() {
+    return gulp.src('app/**/*/')
+    .pipe(gulp.dest('build/'));
+  });
+
+// Task to remove unwanted build files in => list all dir to be included
+gulp.task('build:remove', ['build:copy'], function(cb) {
+  del([
+    'build/scss/',
+    'build/js/!(*.min.js)'
+  ], cb);
+});
+
+gulp.task('build', ['build:copy', 'build:remove']);
+
 
 // ////////////////////////////////////////////////
 // Scripts Task
@@ -52,6 +80,15 @@ gulp.task('browser-sync', function() {
   browserSync({
     server: {
       baseDir: "./app/"
+    }
+  });
+});
+
+// Task to run build server for testing final app
+gulp.task('build:serve', function() {
+  browserSync({
+    server: {
+      baseDir: "./build/"
     }
   });
 });
