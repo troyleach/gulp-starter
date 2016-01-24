@@ -1,26 +1,57 @@
+///////////////////////////////////////////////
+//
+// EDIT CONFIG OBJECT BELOW !!!
+// 
+// jsConcatFiles => list of javascript files (in order) to concatenate
+// buildFilesFoldersRemove => list of files to remove when running final build
+// // //////////////////////////////////////////////
+var config = {
+  jsConcatFiles: [
+    './app/js/module1.js', 
+    './app/js/main.js'
+  ], 
+  buildFilesFoldersRemove:[
+    'build/scss/', 
+    'build/js/!(*.min.js)',
+    'build/bower.json',
+    'build/bower_components/',
+    'build/maps/'
+  ]
+};
+
 // ////////////////////////////////////////////////
 // Required taskes
 // gulp build
 // bulp build:serve
 // // /////////////////////////////////////////////
 var gulp         = require('gulp'),
-    uglify       = require('gulp-uglify'),
-    browserSync  = require('browser-sync'),
     sass         = require('gulp-sass'),
-    plumber      = require('gulp-plumber'),
+    sourcemaps   = require('gulp-sourcemaps'),
     autoprefixer = require('gulp-autoprefixer'),
-    del          = require('del'),
-    rename       = require('gulp-rename');
+    browserSync  = require('browser-sync'),
+    concat       = require('gulp-concat'),
+    uglify       = require('gulp-uglify'),
+    rename       = require('gulp-rename'),
+    del          = require('del');
+
+function errorlog(err) {
+  console.error(err.message);
+  this.emit('end');
+};
 
 // ////////////////////////////////////////////////
 // Scripts Task
 // // /////////////////////////////////////////////
 gulp.task('scripts', function() {
-  gulp.src(['app/js/**/*.js', '!app/js/**/*.min.js'])
-    .pipe(plumber())
-    .pipe(rename({ suffix: '.min' }))
+  gulp.src(config.jsConcatFiles)
+    .pipe(sourcemaps.init())
+    .pipe(concat('temp.js'))
     .pipe(uglify())
+    .on('error', errorlog)
+    .pipe(rename('app.min.js'))
+    .pipe(sourcemaps.write('../maps'))
     .pipe(gulp.dest('app/js'))
+
     .pipe(browserSync.stream());
 });
 
@@ -28,13 +59,16 @@ gulp.task('scripts', function() {
 // SASS Task
 // // /////////////////////////////////////////////
 gulp.task('sass', function() {
-  return gulp.src('app/scss/**/*.scss')
-    .pipe(sass().on('error', sass.logError))
-    .pipe(autoprefixer({
-      browsers: ['last 2 versions'],
-      cascade: false
-      }))
-    .pipe(gulp.dest('app/css'))
+  gulp.src('app/scss/style.scss')
+      .pipe(sourcemaps.init())
+      .pipe(sass({outputStyle: 'compressed'}))
+      .on('error', errorlog)
+      .pipe(autoprefixer({
+             browsers: ['last 3 versions'],
+             cascade: false
+          })) 
+      .pipe(sourcemaps.write('../maps'))
+      .pipe(gulp.dest('app/css'))
     .pipe(browserSync.stream());
   });
 
